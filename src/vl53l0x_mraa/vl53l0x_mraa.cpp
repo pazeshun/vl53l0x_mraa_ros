@@ -232,3 +232,54 @@ void Vl53l0xMraa::printRangeStatus( VL53L0X_RangingMeasurementData_t* pRangingMe
 
     std::cout << "Range Status: " << RangeStatus << " : " << buf << std::endl;
 }
+
+/**************************************************************************/
+/*!
+    @brief  Set the timing budget of one measurement
+    @param  ms the timing budget in microseconds
+    @returns True if the timing budget was set successfully, False otherwise
+*/
+/**************************************************************************/
+bool Vl53l0xMraa::setMeasurementTimingBudget(uint32_t ms)
+{
+    Status = VL53L0X_SetMeasurementTimingBudgetMicroSeconds(pMyDevice, ms);
+    return (Status == VL53L0X_ERROR_NONE);
+}
+
+/**************************************************************************/
+/*!
+    @brief  get a ranging measurement from the device fastly by skipping ClearInterruptMask
+    @param  RangingMeasurementData the pointer to the struct the data will be stored in
+    @param debug Optional debug flag. If true debug information will print via stdout during execution. Defaults to false.
+    @returns True if address was set successfully, False otherwise
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::getSingleRangingMeasurementFast(VL53L0X_RangingMeasurementData_t *RangingMeasurementData, bool debug)
+{
+    VL53L0X_Error   Status = VL53L0X_ERROR_NONE;
+    FixPoint1616_t  LimitCheckCurrent;
+
+    if( Status == VL53L0X_ERROR_NONE ) {
+        if( debug ) {
+            std::cout << "VL53L0X: PerformSingleRangingMeasurement" << Status << std::endl;
+        }
+        Status = VL53L0X_PerformSingleMeasurement(pMyDevice);
+        if ( Status == VL53L0X_ERROR_NONE ) {
+            Status = VL53L0X_GetRangingMeasurementData(pMyDevice, RangingMeasurementData);
+        }
+
+        if( debug ) {
+            printRangeStatus( RangingMeasurementData );
+        }
+
+        if( debug ) {
+            VL53L0X_GetLimitCheckCurrent( pMyDevice, VL53L0X_CHECKENABLE_RANGE_IGNORE_THRESHOLD, &LimitCheckCurrent );
+
+            std::cout << "RANGE IGNORE THRESHOLD: " << (float)LimitCheckCurrent / 65536.0 << std::endl;
+
+            std::cout << "Measured distance: " << RangingMeasurementData->RangeMilliMeter << std::endl;
+        }
+    }
+
+    return Status;
+}
