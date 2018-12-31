@@ -41,12 +41,18 @@ generate_messages(
 ## catkin specific configuration ##
 ###################################
 
-catkin_package(
-  INCLUDE_DIRS include
-  LIBRARIES vl53l0x_mraa
-  CATKIN_DEPENDS message_runtime roscpp std_msgs
-  DEPENDS mraa
-)
+if(${mraa_FOUND})
+  catkin_package(
+    INCLUDE_DIRS include
+    LIBRARIES vl53l0x_mraa
+    CATKIN_DEPENDS message_runtime roscpp std_msgs
+    DEPENDS mraa
+  )
+else()
+  catkin_package(
+    CATKIN_DEPENDS message_runtime roscpp std_msgs
+  )
+endif()
 
 ###########
 ## Build ##
