@@ -33,6 +33,7 @@ class Vl53l0xMraa
     void          printRangeStatus( VL53L0X_RangingMeasurementData_t* pRangingMeasurementData );
     bool setMeasurementTimingBudget(uint32_t ms);
     VL53L0X_Error getSingleRangingMeasurementFast(VL53L0X_RangingMeasurementData_t* pRangingMeasurementData, bool debug = false);
+    bool resetDevice();
 
     VL53L0X_Error                     Status      = VL53L0X_ERROR_NONE; ///< indicates whether or not the sensor has encountered an error
 

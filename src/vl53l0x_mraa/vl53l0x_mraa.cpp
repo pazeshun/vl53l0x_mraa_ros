@@ -283,3 +283,23 @@ VL53L0X_Error Vl53l0xMraa::getSingleRangingMeasurementFast(VL53L0X_RangingMeasur
 
     return Status;
 }
+
+/**************************************************************************/
+/*!
+    @brief  Reset device and wait for the booting up
+    @returns True if device is reseted successfully, False otherwise
+*/
+/**************************************************************************/
+bool Vl53l0xMraa::resetDevice()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_ResetDevice(pMyDevice);
+
+    if (Status == VL53L0X_ERROR_NONE)
+    {
+      return true;
+    }
+
+    return false;
+}
