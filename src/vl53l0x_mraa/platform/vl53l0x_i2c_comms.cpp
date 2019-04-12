@@ -10,7 +10,8 @@ int VL53L0X_i2c_init(mraa::I2c *i2c) {
 }
 
 int VL53L0X_write_multi(uint8_t deviceAddress, uint8_t index, uint8_t *pdata, uint32_t count, mraa::I2c *i2c) {
-  i2c->address(deviceAddress);
+  if (i2c->address(deviceAddress) != mraa::SUCCESS)
+    return VL53L0X_ERROR_CONTROL_INTERFACE;
   uint8_t *index_and_pdata = new uint8_t[count + 1];
   uint32_t write_len = count + 1;
   index_and_pdata[0] = index;
@@ -30,14 +31,17 @@ int VL53L0X_write_multi(uint8_t deviceAddress, uint8_t index, uint8_t *pdata, ui
   std::count << std::endl;
 #endif
   index_and_pdata -= write_len;
-  i2c->write(index_and_pdata, write_len);
+  mraa::Result result = i2c->write(index_and_pdata, write_len);
   delete[] index_and_pdata;
+  if (result != mraa::SUCCESS)
+    return VL53L0X_ERROR_CONTROL_INTERFACE;
   return VL53L0X_ERROR_NONE;
 }
 
 int VL53L0X_read_multi(uint8_t deviceAddress, uint8_t index, uint8_t *pdata, uint32_t count, mraa::I2c *i2c) {
-  i2c->address(deviceAddress);
-  i2c->readBytesReg(index, pdata, count);
+  if (i2c->address(deviceAddress) != mraa::SUCCESS)
+    return VL53L0X_ERROR_CONTROL_INTERFACE;
+  int ret_count = i2c->readBytesReg(index, pdata, count);
 #ifdef I2C_DEBUG
   std::cout << "\tReading " << count << " from addr 0x" << std::hex << index << std::dec << ": ";
 #endif
@@ -49,6 +53,9 @@ int VL53L0X_read_multi(uint8_t deviceAddress, uint8_t index, uint8_t *pdata, uin
   }
   std::count << std::endl;
 #endif
+
+  if (ret_count < 0)
+    return VL53L0X_ERROR_CONTROL_INTERFACE;
   return VL53L0X_ERROR_NONE;
 }
 
