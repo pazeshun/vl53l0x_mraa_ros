@@ -259,6 +259,7 @@ VL53L0X_Error Vl53l0xMraa::getSingleRangingMeasurementFast(VL53L0X_RangingMeasur
     VL53L0X_Error   Status = VL53L0X_ERROR_NONE;
     FixPoint1616_t  LimitCheckCurrent;
 
+    Status = VL53L0X_SetDeviceMode(pMyDevice, VL53L0X_DEVICEMODE_SINGLE_RANGING);
     if( Status == VL53L0X_ERROR_NONE ) {
         if( debug ) {
             std::cout << "VL53L0X: PerformSingleRangingMeasurement" << Status << std::endl;
