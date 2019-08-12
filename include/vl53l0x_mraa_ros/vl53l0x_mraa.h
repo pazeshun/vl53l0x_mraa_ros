@@ -7,6 +7,7 @@
 #include <time.h>
 #include "mraa.hpp"
 #include "vl53l0x_api.h"
+#include "vl53l0x_api_core.h"  // For VL53L0X_measurement_poll_for_completion()
 
 #define VL53L0X_I2C_ADDR  0x29 ///< Default sensor I2C address
 
@@ -34,6 +35,11 @@ class Vl53l0xMraa
     bool setMeasurementTimingBudget(uint32_t ms);
     VL53L0X_Error getSingleRangingMeasurementFast(VL53L0X_RangingMeasurementData_t* pRangingMeasurementData, bool debug = false);
     bool resetDevice();
+    VL53L0X_Error setDeviceModeToSingleRanging();
+    VL53L0X_Error startMeasurement();
+    VL53L0X_Error measurementPollForCompletion();
+    void setPalStateToIdle();
+    VL53L0X_Error getRangingMeasurementData(VL53L0X_RangingMeasurementData_t* RangingMeasurementData, bool debug = false);
 
     VL53L0X_Error                     Status      = VL53L0X_ERROR_NONE; ///< indicates whether or not the sensor has encountered an error
 

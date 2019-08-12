@@ -304,3 +304,84 @@ bool Vl53l0xMraa::resetDevice()
 
     return false;
 }
+
+/**************************************************************************/
+/*!
+    @brief Set device mode to single ranging (measurement)
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::setDeviceModeToSingleRanging()
+{
+    VL53L0X_Error   Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_SetDeviceMode(pMyDevice, VL53L0X_DEVICEMODE_SINGLE_RANGING);
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Only start measurement
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::startMeasurement()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_StartMeasurement(pMyDevice);
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Wait for measurement data ready by polling on the ranging status
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::measurementPollForCompletion()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_measurement_poll_for_completion(pMyDevice);
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Set state of the PAL for this device to idle
+*/
+/**************************************************************************/
+void Vl53l0xMraa::setPalStateToIdle()
+{
+    PALDevDataSet(pMyDevice, PalState, VL53L0X_STATE_IDLE);
+}
+
+/**************************************************************************/
+/*!
+    @brief Get a ranging measurement from the device without starting measurement
+    @param RangingMeasurementData the pointer to the struct the data will be stored in
+    @param debug Optional debug flag. If true debug information will print via stdout during execution. Defaults to false.
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::getRangingMeasurementData(VL53L0X_RangingMeasurementData_t *RangingMeasurementData, bool debug)
+{
+    VL53L0X_Error   Status = VL53L0X_ERROR_NONE;
+    FixPoint1616_t  LimitCheckCurrent;
+
+    Status = VL53L0X_GetRangingMeasurementData(pMyDevice, RangingMeasurementData);
+
+    if (debug)
+    {
+        printRangeStatus(RangingMeasurementData);
+        VL53L0X_GetLimitCheckCurrent(pMyDevice, VL53L0X_CHECKENABLE_RANGE_IGNORE_THRESHOLD, &LimitCheckCurrent);
+        std::cout << "RANGE IGNORE THRESHOLD: " << (float)LimitCheckCurrent / 65536.0 << std::endl;
+        std::cout << "Measured distance: " << RangingMeasurementData->RangeMilliMeter << std::endl;
+    }
+
+    return Status;
+}
