@@ -37,6 +37,8 @@ class Vl53l0xMraa
     bool resetDevice();
     VL53L0X_Error setDeviceModeToSingleRanging();
     VL53L0X_Error startMeasurement();
+    VL53L0X_Error startSingleRangingWithoutWaitForStop();
+    VL53L0X_Error waitForSingleRangingToStop();
     VL53L0X_Error measurementPollForCompletion();
     void setPalStateToIdle();
     VL53L0X_Error getRangingMeasurementData(VL53L0X_RangingMeasurementData_t* RangingMeasurementData, bool debug = false);

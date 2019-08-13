@@ -337,6 +337,62 @@ VL53L0X_Error Vl53l0xMraa::startMeasurement()
 
 /**************************************************************************/
 /*!
+    @brief Only start single ranging without waiting for it to stop (part of startMeasurement())
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::startSingleRangingWithoutWaitForStop()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_WrByte(pMyDevice, 0x80, 0x01);
+    Status = VL53L0X_WrByte(pMyDevice, 0xFF, 0x01);
+    Status = VL53L0X_WrByte(pMyDevice, 0x00, 0x00);
+    Status = VL53L0X_WrByte(pMyDevice, 0x91, PALDevDataGet(pMyDevice, StopVariable));
+    Status = VL53L0X_WrByte(pMyDevice, 0x00, 0x01);
+    Status = VL53L0X_WrByte(pMyDevice, 0xFF, 0x00);
+    Status = VL53L0X_WrByte(pMyDevice, 0x80, 0x00);
+
+    Status = VL53L0X_WrByte(pMyDevice, VL53L0X_REG_SYSRANGE_START, 0x01);
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Wait for single ranging to stop (part of startMeasurement())
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::waitForSingleRangingToStop()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+    uint8_t Byte;
+    uint8_t StartStopByte = VL53L0X_REG_SYSRANGE_MODE_START_STOP;
+    uint32_t LoopNb;
+
+    Byte = StartStopByte;
+    /* Wait until start bit has been cleared */
+    LoopNb = 0;
+    do
+    {
+        if (LoopNb > 0)
+        {
+            Status = VL53L0X_RdByte(pMyDevice, VL53L0X_REG_SYSRANGE_START, &Byte);
+        }
+        LoopNb = LoopNb + 1;
+    } while (((Byte & StartStopByte) == StartStopByte) && (Status == VL53L0X_ERROR_NONE) &&
+             (LoopNb < VL53L0X_DEFAULT_MAX_LOOP));
+    if (LoopNb >= VL53L0X_DEFAULT_MAX_LOOP)
+    {
+        Status = VL53L0X_ERROR_TIME_OUT;
+    }
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
     @brief Wait for measurement data ready by polling on the ranging status
     @returns Error status of this device
 */
