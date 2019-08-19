@@ -305,6 +305,12 @@ bool Vl53l0xMraa::resetDevice()
     return false;
 }
 
+// getSingleRangingMeasurementFast() = setDeviceModeToSingleRanging() + startMeasurement() +
+//         measurementPollForCompletion() + setPalStateToIdle() + getRangingMeasurementData()
+// In Single Ranging, startMeasurement() = startSingleRangingWithoutWaitForStop() + waitForSingleRangingToStop()
+// Continuous Ranging without interrupt: setDeviceModeToContinuousRanging() + startMeasurement() +
+//         (measurementPollForCompletion() + getRangingMeasurementData()) * n + stopMeasurement() + waitStopCompleted()
+
 /**************************************************************************/
 /*!
     @brief Set device mode to single ranging (measurement)
@@ -313,9 +319,24 @@ bool Vl53l0xMraa::resetDevice()
 /**************************************************************************/
 VL53L0X_Error Vl53l0xMraa::setDeviceModeToSingleRanging()
 {
-    VL53L0X_Error   Status = VL53L0X_ERROR_NONE;
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
 
     Status = VL53L0X_SetDeviceMode(pMyDevice, VL53L0X_DEVICEMODE_SINGLE_RANGING);
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Set device mode to continuous ranging (measurement)
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::setDeviceModeToContinuousRanging()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_SetDeviceMode(pMyDevice, VL53L0X_DEVICEMODE_CONTINUOUS_RANGING);
 
     return Status;
 }
@@ -418,6 +439,20 @@ void Vl53l0xMraa::setPalStateToIdle()
 
 /**************************************************************************/
 /*!
+    @brief Get state of the PAL for this device
+*/
+/**************************************************************************/
+VL53L0X_State Vl53l0xMraa::getPalState()
+{
+    VL53L0X_State State = VL53L0X_STATE_IDLE;
+
+    VL53L0X_GetPalState(pMyDevice, &State);
+
+    return State;
+}
+
+/**************************************************************************/
+/*!
     @brief Get a ranging measurement from the device without starting measurement
     @param RangingMeasurementData the pointer to the struct the data will be stored in
     @param debug Optional debug flag. If true debug information will print via stdout during execution. Defaults to false.
@@ -437,6 +472,55 @@ VL53L0X_Error Vl53l0xMraa::getRangingMeasurementData(VL53L0X_RangingMeasurementD
         VL53L0X_GetLimitCheckCurrent(pMyDevice, VL53L0X_CHECKENABLE_RANGE_IGNORE_THRESHOLD, &LimitCheckCurrent);
         std::cout << "RANGE IGNORE THRESHOLD: " << (float)LimitCheckCurrent / 65536.0 << std::endl;
         std::cout << "Measured distance: " << RangingMeasurementData->RangeMilliMeter << std::endl;
+    }
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Stop measurement
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::stopMeasurement()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+
+    Status = VL53L0X_StopMeasurement(pMyDevice);
+
+    return Status;
+}
+
+/**************************************************************************/
+/*!
+    @brief Wait for stopping measurement to complete by polling
+    @returns Error status of this device
+*/
+/**************************************************************************/
+VL53L0X_Error Vl53l0xMraa::waitStopCompleted()
+{
+    VL53L0X_Error Status = VL53L0X_ERROR_NONE;
+    uint32_t StopCompleted = 0;
+    uint32_t LoopNb;
+
+    // Wait until it finished
+    // use timeout to avoid deadlock
+    LoopNb = 0;
+    do
+    {
+        Status = VL53L0X_GetStopCompletedStatus(pMyDevice, &StopCompleted);
+        if ((StopCompleted == 0x00) || Status != VL53L0X_ERROR_NONE)
+        {
+            break;
+        }
+        LoopNb = LoopNb + 1;
+        VL53L0X_PollingDelay(pMyDevice);
+    } while (LoopNb < VL53L0X_DEFAULT_MAX_LOOP);
+
+    if (LoopNb >= VL53L0X_DEFAULT_MAX_LOOP)
+    {
+        Status = VL53L0X_ERROR_TIME_OUT;
     }
 
     return Status;

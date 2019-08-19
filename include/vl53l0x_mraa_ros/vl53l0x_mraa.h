@@ -36,12 +36,16 @@ class Vl53l0xMraa
     VL53L0X_Error getSingleRangingMeasurementFast(VL53L0X_RangingMeasurementData_t* pRangingMeasurementData, bool debug = false);
     bool resetDevice();
     VL53L0X_Error setDeviceModeToSingleRanging();
+    VL53L0X_Error setDeviceModeToContinuousRanging();
     VL53L0X_Error startMeasurement();
     VL53L0X_Error startSingleRangingWithoutWaitForStop();
     VL53L0X_Error waitForSingleRangingToStop();
     VL53L0X_Error measurementPollForCompletion();
     void setPalStateToIdle();
+    VL53L0X_State getPalState();
     VL53L0X_Error getRangingMeasurementData(VL53L0X_RangingMeasurementData_t* RangingMeasurementData, bool debug = false);
+    VL53L0X_Error stopMeasurement();
+    VL53L0X_Error waitStopCompleted();
 
     VL53L0X_Error                     Status      = VL53L0X_ERROR_NONE; ///< indicates whether or not the sensor has encountered an error
 
